@@ -9,66 +9,131 @@ library(learnr)
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
+<img src=https://images.unsplash.com/photo-1593594820228-a05cc04bc433?ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80  width=400 height=200 style="float:right">
 
-## Topic 1
+## Practical 2 -- Duck nest analysis
 
-### Exercise 
+This has been your first experience using the `Distance` package.  There are only a handful of functions you need to successfully complete a distance sampling analysis.  This practical gave you experience with these functions.  The data are familiar to you because they the same data you used when trying to fit a detection function by hand in Exercise 1.  This exercise lets the computer do the work.  Compare the estimate of duck nest density produced by `Distance` with the estimate you manually produced.
 
-*Here's a simple exercise with an empty code chunk provided for entering the answer.*
+You should have already executed code as described in Practical 2.  I have duplicated some of the code and output here to reduce your need to switch between this tutorial and your previous work.
 
-Write the R code required to add two plus two:
-
-```{r two-plus-two, exercise=TRUE}
-
+```{r message=FALSE,  echo=FALSE, comment=NA, R.options = list(width =90)}
+library(Distance, quietly = TRUE)
+data(ducknest)
+duckunits <- convert_units("meter", "kilometer", "square kilometer")
+halfnorm <- ds(data=ducknest, key="hn", convert_units = duckunits)
+summary(halfnorm)
 ```
 
-### Exercise with Code
-
-*Here's an exercise with some prepopulated code as well as `exercise.lines = 5` to provide a bit more initial room to work.*
-
-Now write a function that adds any two numbers and then call it:
-
-```{r add-function, exercise=TRUE, exercise.lines = 5}
-add <- function() {
-  
-}
+```{r nests}
+quiz(
+  question("For the half normal detection function, what was the estimated value of $\\hat{P}_a$?",
+   answer("0.869", correct=TRUE),
+   answer("0.039"),
+   answer("614.25"),
+   answer("0.933")
+   ),
+  question("Given your estimate of $\\hat{P}_a$, what does it mean?",
+    answer("distance to which nests were detected"),
+    answer("area under the curve"),
+    answer("proportion of nests detected out to 2.4m", correct=TRUE),
+    answer("number of iterations needed to estimate detection function parameters")
+  )
+)
 ```
 
-## Topic 2
+## Convert density to abundance
 
-### Exercise with Hint
+The field `area` was set to 0 in the `ducknest` data frame; however the practical description notes that the refuge is 47.7 km^2 in size.  Use the code block below to complete the abundance estimate by computing the number of duck nests on the refuge based upon your estimate of $\hat{D}$.
 
-*Here's an exercise where the chunk is pre-evaulated via the `exercise.eval` option (so the user can see the default output we'd like them to customize). We also add a "hint" to the correct solution via the chunk immediate below labeled `print-limit-hint`.*
+Replace the blanks in  the following code to limit the number of rows printed to 5:
 
-Modify the following code to limit the number of rows printed to 5:
-
-```{r print-limit, exercise=TRUE, exercise.eval=TRUE}
-mtcars
+```{r abundance, exercise=TRUE, exercise.eval=TRUE, exercise.blanks="___+"}
+dhat <- ___
+area <- ___
+est.num.nests <- ___
+print(est.num.nests)
 ```
 
 ```{r print-limit-hint}
 head(mtcars)
 ```
 
-### Quiz
 
-*You can include any number of single or multiple choice questions as a quiz. Use the `question` function to define a question and the `quiz` function for grouping multiple questions together.*
+## Does a model fit the data?
 
-Some questions to verify that you understand the purposes of various base and recommended R packages:
+Although we have not yet discussed how to assess fit of our models to data, Practical 2 did introduce you to the function `gof_ds`.  The code below applies the goodness of fit function to the half normal detection function fitted to the duck nest data. You are to interpret the output.
 
-```{r quiz}
+```{r gof}
+gof_ds(halfnorm)
+```
+
+
+```{r gof-quest}
 quiz(
-  question("Which package contains functions for installing other R packages?",
-    answer("base"),
-    answer("tools"),
-    answer("utils", correct = TRUE),
-    answer("codetools")
-  ),
-  question("Which of the R packages listed below are used to create plots?",
-    answer("lattice", correct = TRUE),
-    answer("tools"),
-    answer("stats"),
-    answer("grid", correct = TRUE)
-  )
+  question_checkbox("How should the plot be interpreted? (select all that apply)",
+    answer("departures from good fit are indicated by departures from the underlying 45° line", correct=TRUE),
+    answer("model that fits has all points near the 45° line", correct=TRUE),
+    answer("this plot has nothing to do with model fit"),
+    answer("a rapid rise in the graphed points implies good model fit")
+    ),
+  question("The numerical output from `gof_ds` is from the Cramer-von Mises test.   Interpret the output.",
+    answer("P-value is <1, therefore the model fit is poor"),
+    answer("The test statistic is smaller than the P-value, therefore the fit is adequate"),
+    answer("The test statistic is close to 0, therefore the fit is poor"),
+    answer("P-value is close to one, indicating that there’s no reason to suspect the fit is inadequate", correct=TRUE)
+    )
+)
+
+```
+
+## Density estimates from different models
+
+```{r echo=FALSE, message=FALSE}
+nest.hn <- ds(ducknest, key="hn", adjustment=NULL,
+              convert_units=duckunits)
+nest.uf.cos <- ds(ducknest, key="unif", adjustment="cos",
+                  convert_units=duckunits)
+nest.hr.herm <- ds(ducknest, key="hr", adjustment="herm", 
+                  convert_units=duckunits)
+```
+
+```{r table, echo=FALSE}
+nest.tab <- data.frame(
+                       DetectionFunction=c("Half-normal, no adjustments",
+                                           "Uniform, cosine adjustments",
+                                           "Hazard rate, no adjustments "),
+                       Density=rep(NA,3), LowerCI=rep(NA,3), UpperCI=rep(NA,3))
+
+get.results.f <- function(fit.model) {   
+  return(c(D=fit.model$dht$individuals$D$Estimate,
+         lCL=fit.model$dht$individuals$D$lcl,
+         uCL=fit.model$dht$individuals$D$ucl))
+}
+nest.tab[1,2:4] <- get.results.f(nest.hn)
+nest.tab[2,2:4] <- get.results.f(nest.uf.cos)
+nest.tab[3,2:4] <- get.results.f(nest.hr.herm)
+knitr::kable(nest.tab, 
+             caption="Density estimates and confidence intervals for three fitted models.", 
+             digits = 1) %>%
+    kableExtra::kable_styling(bootstrap_options = "striped", full_width = FALSE)
+```
+
+The preceding code fit all three key function models to the duck nest data.  To reinforce the idea that similar results are produced *(for good data)* from the different key functions, write a few lines of code to explore this, using **R** as a calculator.  Value entered to one decimal place.
+
+
+```{r dendiff, exercise=TRUE, exercise.eval=TRUE, exercise.blanks="___+"}
+smallest_est <- ___
+largest_est <- ___
+difference <- largest_est - smallest_est
+relative_difference <- difference / smallest_est
+print(round(relative_difference),3)
+```
+
+From the calculation above,
+
+```{r diffquest}
+question_numeric("To the nearest **percent**, what is the relative difference between the largest and smallest density estimate you just computed?",
+  min = 0, max = 10, step = 1
 )
 ```
