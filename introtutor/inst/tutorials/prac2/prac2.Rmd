@@ -6,6 +6,7 @@ runtime: shiny_prerendered
 
 ```{r setup, include=FALSE}
 library(learnr)
+library(magrittr)
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
@@ -44,19 +45,24 @@ quiz(
 
 ## Convert density to abundance
 
-The field `area` was set to 0 in the `ducknest` data frame; however the practical description notes that the refuge is 47.7 km^2 in size.  Use the code block below to complete the abundance estimate by computing the number of duck nests on the refuge based upon your estimate of $\hat{D}$.
+The field `area` was set to 0 in the `ducknest` data frame; however the practical description notes that the refuge is 47.7 $km^2$ in size.  Use the code block below to complete the abundance estimate by computing the number of duck nests on the refuge based upon your estimate of $\hat{D}$.
 
-Replace the blanks in  the following code to limit the number of rows printed to 5:
+Remember the density estimate from the half normal key function model was **`r round(halfnorm$dht$individuals$D$Estimate,2)`**.
 
-```{r abundance, exercise=TRUE, exercise.eval=TRUE, exercise.blanks="___+"}
+Replace the blanks in  the following code to produce an estimate of the number of nests on the refuge.
+
+```{r abundance, exercise=TRUE, exercise.eval=FALSE, exercise.blanks=TRUE}
 dhat <- ___
 area <- ___
 est.num.nests <- ___
 print(est.num.nests)
 ```
 
-```{r print-limit-hint}
-head(mtcars)
+```{r numnests}
+question_numeric("To the nearest 10, what is the estimated total number of nests on the refuge?",
+  tolerance=10, allow_retry = TRUE, 
+  answer(2370, correct=TRUE)
+)
 ```
 
 
@@ -64,7 +70,7 @@ head(mtcars)
 
 Although we have not yet discussed how to assess fit of our models to data, Practical 2 did introduce you to the function `gof_ds`.  The code below applies the goodness of fit function to the half normal detection function fitted to the duck nest data. You are to interpret the output.
 
-```{r gof}
+```{r gof, comment=NA}
 gof_ds(halfnorm)
 ```
 
@@ -122,18 +128,19 @@ knitr::kable(nest.tab,
 The preceding code fit all three key function models to the duck nest data.  To reinforce the idea that similar results are produced *(for good data)* from the different key functions, write a few lines of code to explore this, using **R** as a calculator.  Value entered to one decimal place.
 
 
-```{r dendiff, exercise=TRUE, exercise.eval=TRUE, exercise.blanks="___+"}
+```{r dendiff, exercise=TRUE, exercise.eval=FALSE, exercise.blanks="___+"}
 smallest_est <- ___
 largest_est <- ___
 difference <- largest_est - smallest_est
 relative_difference <- difference / smallest_est
-print(round(relative_difference),3)
+print(round(relative_difference,3))
 ```
 
 From the calculation above,
 
 ```{r diffquest}
 question_numeric("To the nearest **percent**, what is the relative difference between the largest and smallest density estimate you just computed?",
-  min = 0, max = 10, step = 1
+  min = 0, max = 10, step = 1, allow_retry = TRUE, incorrect="The answer is in percent, not proportion.",
+  answer(5, correct=TRUE)
 )
 ```
