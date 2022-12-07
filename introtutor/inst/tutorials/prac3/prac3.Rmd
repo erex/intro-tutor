@@ -1,0 +1,122 @@
+---
+title: "Model criticism"
+output: learnr::tutorial
+runtime: shiny_prerendered
+---
+
+```{r setup, include=FALSE}
+library(learnr)
+library(magrittr)
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+<img src=https://images.unsplash.com/photo-1611602745202-8feda1936921?ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80   width=400 height=200 style="float:right">
+
+
+## Line transect analysis
+
+This data set was simulated so we know both the true population density and the true underlying detection function.  Our interest lies in the robustness of the density estimates in the face of model uncertainty.  With actual data, we will not know the shape of the underlying process that gives rise to the detection process.  It would be reassuring if density estimates were relatively insensitive to choice of detection function model.  Let's find out how sensitive our estimates are for this data set.
+
+
+### Exercise 
+
+```{r  message=FALSE}
+library(Distance)
+data("LTExercise")
+conversion.factor <- convert_units("meter", "kilometer", "square kilometer")
+lt.hn.cos.t20m <- ds(data=LTExercise, key="hn", adjustment="cos", truncation=20, 
+                     convert_units=conversion.factor)
+lt.uf.cos.t20m <- ds(data=LTExercise, key="unif", adjustment="cos", 
+                     truncation=20, convert_units=conversion.factor)
+lt.hr.t20m <- ds(data=LTExercise, key="hr", truncation=20,
+                 convert_units=conversion.factor)
+```
+
+```{r "table", echo=FALSE}
+nest.tab <- data.frame(
+                       DetectionFunction=c("Half-normal 20m trunc",
+                                           "Uniform, cosine adjustments 20m trunc",
+                                           "Hazard rate 20m trunc"),
+                       Density=rep(NA,3), LowerCI=rep(NA,3), UpperCI=rep(NA,3))
+
+get.results.f <- function(fit.model) {   
+  return(c(D=fit.model$dht$individuals$D$Estimate,
+         lCL=fit.model$dht$individuals$D$lcl,
+         uCL=fit.model$dht$individuals$D$ucl))
+}
+nest.tab[1,2:4] <- get.results.f(lt.hn.cos.t20m)
+nest.tab[2,2:4] <- get.results.f(lt.uf.cos.t20m)
+nest.tab[3,2:4] <- get.results.f(lt.hr.t20m)
+knitr::kable(nest.tab, 
+             caption="Density estimates and confidence intervals for three fitted models.", 
+             digits = 1) %>%
+    kableExtra::kable_styling(bootstrap_options = "striped", full_width = FALSE)
+```
+
+Similar to yesterday's tutorial, examine the sensitivity of the density estimates from the three models fitted to data truncated at 20m.
+
+```{r sensit, exercise=TRUE, exercise.eval=FALSE, exercise.blanks=TRUE}
+dhat.low <- ___
+dhat.hi <- ___
+dhat.diff <- dhat.hi - dhat.low
+rel.diff <- dhat.diff / dhat.hi
+print(rel.diff)
+```
+
+```{r numnests}
+question_numeric("To the nearest 2, what is the relative percentage difference between smallest and largest estimates?",
+  tolerance=2, allow_retry = TRUE, 
+  answer(3, correct=TRUE)
+)
+```
+
+```{r noadj}
+  question_radio("What effect did adjustment terms have upon model fit for the half normal and hazard rate key functions with 20m truncation?",
+    answer("caused the hazard rate model to outperform the half normal"),
+    answer("improved performance of the hazard rate model, but not the half normal"),
+    answer("adjustment terms did not appear in the final key function models", correct=TRUE)
+    )
+```
+
+### Model fit
+
+One oversight of the analysis of `LTExercise` simulated data is the failure to assess model fit.  Using the `gof_ds` function, below is code to perform Cramer-von Mises goodness of fit tests upon all three key function models with 20m truncation.  We use the argument `plot=FALSE` to skip production of the Q-Q plot in this instance.
+
+```{r modelfit, echo=1:3}
+gof_ds(lt.hn.cos.t20m, plot=FALSE)
+gof_ds(lt.uf.cos.t20m, plot=FALSE)
+gof_ds(lt.hr.t20m, plot=FALSE)
+  question_checkbox("Which of the models fit the data (truncated at 20m) and could be used for inference?",
+    answer("half normal key with cosine adjustment", correct=TRUE),
+    answer("hazard rate key with cosine adjustment", correct=TRUE),
+    answer("uniform key with cosine adjustment", correct=TRUE)
+    )
+```
+
+
+### Capercaillie data
+
+Watch out for danger signs in output of functions.  Examine the output of this simple half normal fitted to the exact capercaillie distances. Consider the following output:
+
+```{r caper}
+data("capercaillie")
+conversion.factor <- convert_units("meter", "kilometer", "hectare")
+caper.hn <- ds(data=capercaillie, key="hn", adjustment=NULL, 
+               convert_units=conversion.factor)
+summary(caper.hn)
+```
+
+```{r se0}
+question_radio("What strikes you as strange about the variability associated with encounter rate (`se.ER` and `cv.ER`)?",
+    answer("they are vanishingly small", correct=TRUE),
+    answer("they are incredibly large")
+)
+```
+
+```{r binned}
+question_radio("This is an actual data set, so we do not know the true density of capercaillie in this study area.  However we can compare the point estimates of density derived from distances treated as exact and from binned distances.",
+    answer("With binned distances, the estimate of $\\hat{D}$ is an order of magnitude larger than with exact distances"),
+    answer("$\\hat{D}$ from the half normal with binned distances is between the estimates of $\\hat{D}$ with the half normal and hazard rate keys using exact distances", correct=TRUE),
+    answer("We are not sure whether the detection function fitted to the exact distances fit the data")
+)
+```
