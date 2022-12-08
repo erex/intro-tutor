@@ -11,6 +11,9 @@ knitr::opts_chunk$set(echo = FALSE)
 ```
 
 
+<img src=https://images.unsplash.com/photo-1519599189038-58e6fc7a060d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=928&q=80 width=213 height=267 style="float:right">
+<p style="font-size: x-small align:right">Photo by Michael Shannon</p>
+
 ## Topic 1
 
 ### Exercise 
