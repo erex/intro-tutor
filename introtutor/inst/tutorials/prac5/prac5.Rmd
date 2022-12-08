@@ -1,0 +1,106 @@
+---
+title: "Point transect survey analysis"
+output: learnr::tutorial
+runtime: shiny_prerendered
+description: Visiting the analysis of both the simulated point transect data as well as Buckland's Montrave songbird data.
+---
+
+```{r setup, include=FALSE}
+library(learnr)
+library(magrittr)
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+<img src=https://images.unsplash.com/photo-1606501427419-0fcf7d0c8013?ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80 width=350 height=200 style="float:right">
+
+## Point transects
+
+This data set was simulated so we know both the true population density and the true underlying detection function.  We remain interested in the robustness of density estimates across the range of key function models. Examine the largest and smallest density estimates to discover the ranges of density estimates.
+
+```{r  message=FALSE, warning=FALSE, echo=FALSE}
+library(Distance)
+data("PTExercise")
+conversion.factor <- convert_units("meter", NULL, "hectare")
+PTExercise.hn.t20m <- ds(data=PTExercise, transect="point", 
+                         key="hn", truncation=20, 
+                         convert_units=conversion.factor)
+PTExercise.hr.t20m <- ds(data=PTExercise, transect="point", 
+                         key="hr", truncation=20, 
+                         convert_units=conversion.factor)
+PTExercise.uf.cos.t20m <- ds(data=PTExercise, transect="point", 
+                             key="unif", adjustment="cos", 
+                             trunc=20,convert_units=conversion.factor)
+hn <- summary(PTExercise.hn.t20m)$dht$individuals$D[c(2,4)]
+hr <- summary(PTExercise.hr.t20m)$dht$individuals$D[c(2,4)]
+unif <- summary(PTExercise.uf.cos.t20m)$dht$individuals$D[c(2,4)]
+ptsim <- rbind(hn, hr, unif)
+row.names(ptsim) <- c("Halfnorm", "Hazardrate", "Unifcos")
+kbl(ptsim, digits=c(1,3), 
+    caption="Simulated point transect data fitted with three detection functions; truncated at 20m") %>%
+    kable_styling(full_width = FALSE)
+```
+
+Repeat the calculations that you made at the conclusion of Exercise 3; this time looking at the relative difference between the most extreme density estimates for this data set (remember true density is 79.8 per $km^2$, just as it was for the simulated line transect data).  Use the three key functions (uniform with cosine adjustment, half normal and hazard rate) with a 20m truncation distance suggested in the exercise.
+
+Determine the magnitude (in percent) of the range in density estimates produced by these three models fitted to the simulated data.  Reflect on the magnitude of this range vis-a-vis the range in estimates among models for the line transect data set.
+
+```{r sensit, exercise=TRUE, exercise.eval=FALSE, exercise.blanks=TRUE}
+dhat.low <- ___
+dhat.hi <- ___
+dhat.diff <- dhat.hi - dhat.low
+rel.diff <- dhat.diff / dhat.hi
+print(rel.diff)
+```
+
+```{r numnests}
+question_numeric("To the nearest 2, what is the relative percentage difference between smallest and largest estimates?",
+  tolerance=2, allow_retry = TRUE, 
+  answer(20, correct=TRUE)
+)
+```
+
+### Wren data from Buckland Montrave study
+
+The analysis you were asked to do for these data sets was not as exhaustive as the previous analysis.  There is not a suite of models fitted to the two data sets; only a single model for each type of point transect.  The model selection was carried out in Buckland (2006).  Emphasis here is upon recognising differences in estimated density arising from the two methods of data collection.
+
+```{r "wrens", echo=FALSE, warning=FALSE, message=FALSE}
+data("wren_5min")
+data("wren_snapshot")
+conversion.factor <- convert_units("meter", NULL, "hectare")
+wren5min.uf.cos.t110 <- ds(data=wren_5min, key="unif", adjustment="cos", 
+                        transect="point", truncation=110, 
+                        convert_units=conversion.factor)
+wrensnap.hr.t110 <- ds(data=wren_snapshot, key="hr", adjustment=NULL, 
+                        transect="point", truncation=110, 
+                        convert_units=conversion.factor)
+snap <- summary(wrensnap.hr.t110)$dht$individuals$D[c(2,4)]
+min5 <- summary(wren5min.uf.cos.t110)$dht$individuals$D[c(2,4)]
+part <- (rbind(snap, min5))
+wsnap <- gof_ds(wrensnap.hr.t110, plot=FALSE)$dsgof$CvM$p
+w5min <- gof_ds(wren5min.uf.cos.t110, plot=FALSE)$dsgof$CvM$p
+completesummary <- cbind(part, rbind(wsnap, w5min))
+names(completesummary) <- c("Density.est", "CV", "GOF(P-value)")
+rownames(completesummary) <- c("Snapshot", "5minute")
+kbl(completesummary, digits=3, 
+             caption="Point estimate, precision and goodness of fit for snapshot and 5minute counts.") %>%
+    kable_styling(full_width = FALSE)
+```
+
+
+```{r quiz}
+quiz(
+  question_numeric("How much larger (percent) is 5-minute density estimate than snapshot density estimate? (to the nearest 5 percent)",
+    tolerance=5, allow_retry = TRUE, 
+    answer(26, correct = TRUE)
+  ),
+  question_radio("Which data collection method produces the more precise estimate (by a considerable amount)?",
+    answer("snapshot", correct = TRUE),
+    answer("5-minute")
+  ),
+  question_radio("There is evidence of evasive movement if you look at the distribution of radial distances.  Was this evasive movement sufficient to make inference suspect for either the 5-minute or snapshot data?",
+    answer("yes"),
+    answer("no", correct = TRUE)
+  )
+  
+)
+```
