@@ -101,6 +101,5 @@ quiz(
     answer("yes"),
     answer("no", correct = TRUE)
   )
-  
 )
 ```
