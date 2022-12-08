@@ -2,6 +2,7 @@
 title: "Detection functions"
 output: learnr::tutorial
 runtime: shiny_prerendered
+description: Re-visit duck nest data, exploring model output to locate important printed quantities.
 ---
 
 ```{r setup, include=FALSE}

@@ -2,6 +2,7 @@
 title: "Model criticism"
 output: learnr::tutorial
 runtime: shiny_prerendered
+description: Investigate matters of model fit and model selection. Examine sensitivity of density estimates to choice of detection function model (for well-behaved data).
 ---
 
 ```{r setup, include=FALSE}
