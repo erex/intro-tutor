@@ -1,0 +1,99 @@
+---
+title: "Design of surveys"
+output: learnr::tutorial
+runtime: shiny_prerendered
+description: Questions concerning aerial survey of marine mammals near St Andrews and terrestrial point transect surveys for birds also near St Andrews.
+---
+
+```{r setup, include=FALSE}
+library(learnr)
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+<img src=https://images.unsplash.com/photo-1526485796220-1c4ad338f85f?ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=1351&q=80 width=400 height=200 style="float:right">
+
+## Exercise 6 -- Survey design
+
+Output provided by the `dssd` package is extensive; the following is intended to help you find the most important aspects of that output so you can effectively assess the merits of the survey designs you produce. The following questions are intended to have you pick through the output and *think* about what some of those values are telling you.  The questions also ask you to do some "sense checking" to ensure the software is performing the way you expect (never trust software to do the right thing).
+
+```{r  message=FALSE, warning=FALSE, echo=FALSE}
+library(dssd)
+shapefile.name <- system.file("extdata", "StAndrew.shp", package = "dssd")
+region <- make.region(region.name = "St Andrews Bay",
+                      units = "m",
+                      shape = shapefile.name)
+cover <- make.coverage(region, n.grid.points = 2000)
+design.space500 <- make.design(region = region,
+                      transect.type = "line",
+                      design = "systematic",
+                      spacing = 5000,
+                      design.angle = 90,
+                      edge.protocol = "minus",
+                      truncation = 2000,
+                      coverage.grid = cover)
+design.space500 <- run.coverage(design.space500, reps = 100, quiet=TRUE)
+print(design.space500)
+```
+
+
+### Answer these questions by examining at the output above
+
+*Here's a simple exercise with an empty code chunk provided for entering the answer.*
+
+Write the R code required to add two plus two:
+
+```{r two-plus-two, exercise=TRUE}
+
+```
+
+### Exercise with Code
+
+*Here's an exercise with some prepopulated code as well as `exercise.lines = 5` to provide a bit more initial room to work.*
+
+Now write a function that adds any two numbers and then call it:
+
+```{r add-function, exercise=TRUE, exercise.lines = 5}
+add <- function() {
+  
+}
+```
+
+## Topic 2
+
+### Exercise with Hint
+
+*Here's an exercise where the chunk is pre-evaulated via the `exercise.eval` option (so the user can see the default output we'd like them to customize). We also add a "hint" to the correct solution via the chunk immediate below labeled `print-limit-hint`.*
+
+Modify the following code to limit the number of rows printed to 5:
+
+```{r print-limit, exercise=TRUE, exercise.eval=TRUE}
+mtcars
+```
+
+```{r print-limit-hint}
+head(mtcars)
+```
+
+### Quiz
+
+*You can include any number of single or multiple choice questions as a quiz. Use the `question` function to define a question and the `quiz` function for grouping multiple questions together.*
+
+Some questions to verify that you understand the purposes of various base and recommended R packages:
+
+```{r quiz}
+quiz(
+  question("Which package contains functions for installing other R packages?",
+    answer("base"),
+    answer("tools"),
+    answer("utils", correct = TRUE),
+    answer("codetools")
+  ),
+  question("Which of the R packages listed below are used to create plots?",
+    answer("lattice", correct = TRUE),
+    answer("tools"),
+    answer("stats"),
+    answer("grid", correct = TRUE)
+  )
+)
+```
