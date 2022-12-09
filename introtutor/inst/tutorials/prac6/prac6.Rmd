@@ -39,40 +39,70 @@ print(design.space500)
 
 ### Answer these questions by examining at the output above
 
-*Here's a simple exercise with an empty code chunk provided for entering the answer.*
+Use some common sense about the parallel aerial survey you have designed.  If the design specification is to place transects 5000m (5km) apart and further if truncation distance is 2000m (on either side of the aircraft), employ some simple geometry to assess whether `dssd` is doing the right thing.
 
-Write the R code required to add two plus two:
 
-```{r two-plus-two, exercise=TRUE}
-
+```{r spatialcover}
+question_numeric("What should be the percentage of the study area covered by survey effort? (to the nearest 5 percent)",
+   tolerance=5, allow_retry = TRUE, 
+   answer=80, correct=TRUE)
 ```
 
-### Exercise with Code
+The design problem you were to solve treated the fuel capacity of the aircraft as the constraint around which you needed to operate.  Remember, the aircraft chosen could only travel 250km without refueling.  That constraint lead you to produce a survey in which the parallel transects were spaced at 5km.
 
-*Here's an exercise with some prepopulated code as well as `exercise.lines = 5` to provide a bit more initial room to work.*
+However, now take a broader view of the problem from a statistical rather than a logistical perspective.  Look in the output provided to determine the number of replicate transects resulting from spacing the transects 5km apart and orienting the transects east-to-west.
 
-Now write a function that adds any two numbers and then call it:
 
-```{r add-function, exercise=TRUE, exercise.lines = 5}
-add <- function() {
-  
-}
+```{r reps}
+quiz(
+question_numeric("How many replicate transects result from this design?",
+   tolerance=1, allow_retry = TRUE, 
+   answer(8, correct=TRUE)
+   ),
+question_radio("Is that sufficient replication (based upon what you learned from the variance discussion Thursday)?",
+   answer("yes"),
+   answer("no", correct=TRUE)
+   ),
+question_checkmark("What possible solutions (more than one answer) might there be to this lack of replication?",
+  answer("find another study area"),
+  answer("hire an aircraft with greater fuel capacity", correct=TRUE),
+  answer("use segmented transects", correct=TRUE),
+  answer("shorten the truncation distance")
+  )
+)
 ```
 
-## Topic 2
+## Comparing parallel and zigzag design
 
-### Exercise with Hint
+Design-based inference rests upon the premise every location in the study area has the same chance of being sampled as every other location.  In other words, coverage scores is uniform.  We use the heat maps created by plotting design objects to visually assess this uniformity.
 
-*Here's an exercise where the chunk is pre-evaulated via the `exercise.eval` option (so the user can see the default output we'd like them to customize). We also add a "hint" to the correct solution via the chunk immediate below labeled `print-limit-hint`.*
-
-Modify the following code to limit the number of rows printed to 5:
-
-```{r print-limit, exercise=TRUE, exercise.eval=TRUE}
-mtcars
+```{r echo=FALSE}
+design.zz.4500 <- make.design(region = region,
+                      transect.type = "line",
+                      design = "eszigzag",
+                      spacing = 4500,
+                      design.angle = 0,
+                      edge.protocol = "minus",
+                      bounding.shape = "convex.hull",
+                      truncation = 2000,
+                      coverage.grid = cover)
+design.zz.4500 <- run.coverage(design.zz.4500, reps = 100, quiet=TRUE)
+print(design.zz.4500)
 ```
 
-```{r print-limit-hint}
-head(mtcars)
+```{r ZIG}
+quiz(
+question_radio("What numerical output might provide a more objective relative assessment of uniformity between designs?",
+   answer("mean line length"),
+   answer("sd (standard deviation) of trackline length"),
+   answer("median coverage score"),
+   answer("sd (standard deviation) of coverage score", correct=TRUE),
+   ),
+question_radio("Using the metric you chose in the previous question, which (parallel or zigzag) appears to have the more uniform coverage score?",
+   answer("parallel", correct=TRUE),
+   answer("zigzag")
+   )
+)
 ```
 
 ### Quiz
