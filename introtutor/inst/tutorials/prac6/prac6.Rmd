@@ -23,7 +23,7 @@ shapefile.name <- system.file("extdata", "StAndrew.shp", package = "dssd")
 region <- make.region(region.name = "St Andrews Bay",
                       units = "m",
                       shape = shapefile.name)
-cover <- make.coverage(region, n.grid.points = 2000)
+cover <- make.coverage(region, n.grid.points = 1000)
 design.space500 <- make.design(region = region,
                       transect.type = "line",
                       design = "systematic",
@@ -45,7 +45,8 @@ Use some common sense about the parallel aerial survey you have designed.  If th
 ```{r spatialcover}
 question_numeric("What should be the percentage of the study area covered by survey effort? (to the nearest 5 percent)",
    tolerance=5, allow_retry = TRUE, 
-   answer=80, correct=TRUE)
+   answer(80, correct=TRUE)
+)
 ```
 
 The design problem you were to solve treated the fuel capacity of the aircraft as the constraint around which you needed to operate.  Remember, the aircraft chosen could only travel 250km without refueling.  That constraint lead you to produce a survey in which the parallel transects were spaced at 5km.
@@ -63,7 +64,7 @@ question_radio("Is that sufficient replication (based upon what you learned from
    answer("yes"),
    answer("no", correct=TRUE)
    ),
-question_checkmark("What possible solutions (more than one answer) might there be to this lack of replication?",
+question_checkbox("What possible solutions (more than one answer) might there be to this lack of replication?",
   answer("find another study area"),
   answer("hire an aircraft with greater fuel capacity", correct=TRUE),
   answer("use segmented transects", correct=TRUE),
@@ -96,7 +97,7 @@ question_radio("What numerical output might provide a more objective relative as
    answer("mean line length"),
    answer("sd (standard deviation) of trackline length"),
    answer("median coverage score"),
-   answer("sd (standard deviation) of coverage score", correct=TRUE),
+   answer("sd (standard deviation) of coverage score", correct=TRUE)
    ),
 question_radio("Using the metric you chose in the previous question, which (parallel or zigzag) appears to have the more uniform coverage score?",
    answer("parallel", correct=TRUE),
@@ -105,25 +106,66 @@ question_radio("Using the metric you chose in the previous question, which (para
 )
 ```
 
-### Quiz
+## Tentsmuir point transect survey design
 
-*You can include any number of single or multiple choice questions as a quiz. Use the `question` function to define a question and the `quiz` function for grouping multiple questions together.*
+When designing the Tentsmuir survey, note that the design feature being specified is the *number of transects*.  This is in contrast to the St Andrews Bay survey, in which you specified the *spacing of transects* (to ensure returning to the airport).  With the Tentsmuir survey, specifying the number of point transects causes `dssd` to determine the number of point transects that can be systematically placed within the two strata of this study. 
 
-Some questions to verify that you understand the purposes of various base and recommended R packages:
 
-```{r quiz}
+```{r echo=FALSE, message=FALSE}
+library(sf)
+shapefile.name <- system.file("extdata", "TentsmuirUnproj.shp", package = "dssd")
+sf.shape <- read_sf(shapefile.name)
+st_crs(sf.shape)
+proj4string <- "+proj=aea +lat_1=56 +lat_2=62 +lat_0=50 +lon_0=-3 +x_0=0 
+                +y_0=0 +ellps=intl +units=m"
+projected.shape <- st_transform(sf.shape, crs = proj4string)
+region.tm <- make.region(region.name = "Tentsmuir",
+                         strata.name = c("Main Area", "Morton Lochs"),
+                         shape = projected.shape)
+cover.tm <- make.coverage(region.tm, n.grid.points = 1000)
+design.tm <- make.design(region = region.tm,
+                         transect.type = "point",
+                         design = "systematic",
+                         samplers = c(25,15),
+                         design.angle = 0,
+                         edge.protocol = "minus",
+                         truncation = 100,
+                         coverage.grid = cover.tm)
+survey.tm <- generate.transects(design.tm)
+print(survey.tm)
+sims.tm <- run.coverage(design.tm, reps=100, quiet=TRUE)
+print(sims.tm)
+```
+
+```{r tens1}
 quiz(
-  question("Which package contains functions for installing other R packages?",
-    answer("base"),
-    answer("tools"),
-    answer("utils", correct = TRUE),
-    answer("codetools")
+  question_numeric("What was the resulting spacing (m) for the main stratum for one realisation of the design? (nearest 10 meters)",
+   tolerance=10, allow_retry = TRUE,                    
+    answer(751, correct = TRUE)
   ),
-  question("Which of the R packages listed below are used to create plots?",
-    answer("lattice", correct = TRUE),
-    answer("tools"),
-    answer("stats"),
-    answer("grid", correct = TRUE)
+  question_numeric("What proportion of the main stratum receives survey effort from the points with sampling radius of 100m? (nearest 5 percent)",
+   tolerance=5, allow_retry = TRUE,                    
+    answer(5, correct = TRUE)
+  ),
+  question_numeric("What was the resulting spacing (m) for the Morton Lochs for one realisation of the design stratum? (nearest 10 meters)",
+   tolerance=10, allow_retry = TRUE,                    
+    answer(218, correct = TRUE)
+  ),
+  question_numeric("What proportion of the Morton Lochs stratum receives survey effort from the points with sampling radius of 100m? (nearest 5 percent)",
+   tolerance=5, allow_retry = TRUE,                    
+    answer(58, correct = TRUE)
   )
 )
 ```
+
+Note that even though the main stratum has 10 more point transects placed within it, the proportion of that stratum covered by sampling effort is much, much smaller than the coverage proportion for the smaller Morton Loch stratum.
+
+
+```{tens2}
+question_radio("Using the metric you chose in the previous question, which (parallel or zigzag) appears to have the more uniform coverage score?",
+   answer("main", correct=TRUE),
+   answer("Morton Lochs")
+)
+```
+
+Also note that the **range** of coverage scores is quite different between the strata: 0.0-0.15 for main, 0.19-0.73 for Morton Lochs.  The mean coverage score for Morton Lochs (0.58) is much closer to the maximum than to the minimum because a smaller number of coverage grid points (those near the edge of the stratum) suffer from low coverage scores.  This small stratum (71ha, 1/20th the size of the main stratum) has a high perimeter-to-area ratio, a situation in which edge effects are likely to arise.
