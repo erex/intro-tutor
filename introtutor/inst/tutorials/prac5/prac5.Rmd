@@ -8,6 +8,7 @@ description: Visiting the analysis of both the simulated point transect data as 
 ```{r setup, include=FALSE}
 library(learnr)
 library(magrittr)
+library(kableExtra)
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
@@ -53,13 +54,13 @@ print(rel.diff)
 ```
 
 ```{r numnests}
-question_numeric("To the nearest 2, what is the relative percentage difference between smallest and largest estimates?",
-  tolerance=2, allow_retry = TRUE, 
+question_numeric("To the nearest 5%, what is the relative percentage difference between smallest and largest estimates?",
+  tolerance=5, allow_retry = TRUE, 
   answer(20, correct=TRUE)
 )
 ```
 
-### Wren data from Buckland Montrave study
+## Wren data from Buckland Montrave study
 
 The analysis you were asked to do for these data sets was not as exhaustive as the previous analysis.  There is not a suite of models fitted to the two data sets; only a single model for each type of point transect.  The model selection was carried out in Buckland (2006).  Emphasis here is upon recognising differences in estimated density arising from the two methods of data collection.
 
@@ -86,6 +87,7 @@ kbl(completesummary, digits=3,
     kable_styling(full_width = FALSE)
 ```
 
+Contrast the point estimates and precision derived from the two survey methods for winter wrens.
 
 ```{r quiz}
 quiz(
