@@ -12,14 +12,20 @@ knitr::opts_chunk$set(echo = FALSE)
 
 
 <img src=https://images.unsplash.com/photo-1519599189038-58e6fc7a060d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=928&q=80 width=213 height=267 style="float:right">
-<p style="font-size: x-small align:right">Photo by Michael Shannon</p>
 
-## Topic 1
+<p style="text-align:right font-size:70%">Photo by Michael Shannon from Unsplash</p>
 
-### Exercise 
+## Poor precision in an abnormal situation
+
+Remember that the "usual" estimator for encounter rate variance is based upon the idea that transects are distributed *randomly* rather than *systematically* with a random start. Under rare circumstances, this can over-estimate encounter rate variance and consequently, variance of density and abundance estimates.  Revisit the output from Practical 4 and answer these questions.
+
+
+### Questions
+
+Before getting absorbed in the analysis, what difficulties were caused because of the *survey design*.
 
 ```{r flaws}
-question_checkbox("Identify the design flaws of the survey that produced such poor precision (check all that apply)",
+question_radio("Identify the design flaws of the survey that produced such poor precision",
   answer("too few replicate transects"),
   answer("ignorance of animal gradient", correct = TRUE),
   answer("truncation too narrow (too few detections)"),
@@ -28,8 +34,23 @@ question_checkbox("Identify the design flaws of the survey that produced such po
 )
 ```
 
+
+```{r firstrun, echo=FALSE, message=FALSE}
+library(Distance)
+data("Systematic_variance_2")
+conversion.factor <- convert_units("metre", "kilometre", "square kilometre")
+sysvar2.hn <- ds(data=Systematic_variance_2, key="hn", adjustment="cos",
+                 convert_units=conversion.factor)
+dens <- sysvar2.hn$dht$individuals$D
+abun <- sysvar2.hn$dht$individuals$N
+combo <- rbind(dens, abun)
+combo$Label <- c("Density", "Abundance")
+knitr::kable(combo[,1:6], row.names = FALSE, digits=3)
+```
+
+
 ```{r double}
-question_checkbox("Why is the estimate of abundance exactly half the estimate of density in this analysis? (check all that apply)",
+question_radio("Why is the estimate of abundance exactly half the estimate of density in this analysis?",
   answer("$\\hat{N} = \\hat{D} \\times A$, where A=1/2", correct = TRUE),
   answer("that is characteristic of the half normal detection function"),
   answer("inadequate survey effort"),
@@ -37,8 +58,62 @@ question_checkbox("Why is the estimate of abundance exactly half the estimate of
 )
 ```
 
+Here is the summary output from the *standard* analysis of this data set. Alarm bells should ring in your head as you examine this output; specifically the variance components constituting the uncertainty in your abundance or density estimates. 
+
+```{r summary, echo=FALSE}
+summary(sysvar2.hn)
+```
+
+Recall how components of uncertainty are computed from the precision lecture. Provide input to the code below to compute the proportion of total uncertainty coming from the two constituents (encounter rate and detection function).
+
+```{r components, exercise=TRUE, exercise.eval=FALSE, exercise.blanks=TRUE}
+cv.abundance <- ___
+cv.p <- ___
+cv.enc.rate <- ___
+er.component <- round(cv.enc.rate^2 / cv.abundance^2 * 100,1)
+detfn.component <- round(cv.p^2 / cv.abundance^2 * 100,1)
+answer <- paste("Detection component = ", detfn.component,
+                " Encounter rate comp = ", er.component)
+print(answer)
+```
+
+```{r components-hint-1}
+cv.abundance <- .277
+```
+
+```{r components-hint-2}
+cv.abundance <- .277
+cv.p <- .057
+```
+
+```{r components-hint-3}
+cv.abundance <- .277
+cv.p <- .057
+cv.enc.rate <- .271
+```
+
+```{r compquest}
+question_numeric("In *normal* circumstances, approximately 75% of abundance estimate uncertainty in line transects comes from encounter rate variance. What percentage of uncertainty here comes from encounter rate uncertainty?",
+  tolerance=5, allow_retry = TRUE, 
+  answer(95, correct=TRUE)
+)
+
+```
+
+
+### Does bootstrapping help?
+
+```{r bootrun, echo=FALSE, warning=FALSE}
+est.boot <- bootdht(model=sysvar2.hn, flatfile=Systematic_variance_2,
+                    summary_fun=bootdht_Nhat_summarize, 
+                    convert_units=conversion.factor, nboot=100,
+                    progress_bar = "none")
+summary(est.boot)
+```
+
+
 ```{r boot}
-question_checkbox("Why does the use of the bootstrap not resolve the poor precision problem? (check all that apply)",
+question_radio("Why does the use of the bootstrap not resolve the poor precision problem? ",
   answer("bootstrap only improves precision of estimated detection function"),
   answer("bootstrap does not perform well with half normal detection function"),
   answer("resampling transects does not alter variability in encounter rate between transects", correct = TRUE),
