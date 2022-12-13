@@ -47,7 +47,7 @@ question_numeric("How many times larger (geographically) is the northern stratum
 This is commonly the situation, high quality habitat is often more scarce than low quality habitat.
 
 ```{r mink2}
-question_numeric("How many times larger is the **density** of the southern stratum, compared to the northern stratum? (to the nearest 0.5)",
+question_numeric("How many times larger is the estimated density of the southern stratum, compared to the northern stratum? (to the nearest 0.5)",
     tolerance=0.5, allow_retry = TRUE, 
     answer(3.4, correct=TRUE)
 )
@@ -56,7 +56,7 @@ question_numeric("How many times larger is the **density** of the southern strat
 Appears to support the belief that there might be a difference in density between the strata.
 
 ```{r mink3}
-question_numeric("How many times larger is the **abundance** in the northern stratum, compared to the south? (to the nearest 0.5)",
+question_numeric("How many times larger is the estimated abundance in the northern stratum, compared to the south? (to the nearest 0.5)",
     tolerance=0.5, allow_retry = TRUE, 
     answer(2.2, correct=TRUE)
 )

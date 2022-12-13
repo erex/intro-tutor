@@ -7,69 +7,150 @@ description: More extensive exploratory data analysis when considering covariate
 
 ```{r setup, include=FALSE}
 library(learnr)
+library(magrittr)
+library(kableExtra)
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
+<img src=https://images.unsplash.com/photo-1521293806442-3c2f0adbf297?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8MTJ8fHN0b3JtJTIwYXQlMjBzZWF8ZW58MHx8MHx8&auto=format&fit=crop&w=500&q=60 width=450 height=225 style="float:right">
 
-## Topic 1
+<p style="text-align:right font-size:70%">Photo by Barth Bailey from Unsplash</p>
 
-### Exercise 
+## Covariates in the detection function
 
-*Here's a simple exercise with an empty code chunk provided for entering the answer.*
+Use of covariates in detection function models require more vigilance in assessing possible covariates prior to analysis and in the interpretation of the analysis. This set of questions asks that you take a more critical look at the results of the analyses presented in the covariate practical.
 
-Write the R code required to add two plus two:
+### Amakihi songbird data 
 
-```{r two-plus-two, exercise=TRUE}
+Before using the `ds()` function, exploratory data analysis screens candidate covariates for potential utility in the detection function as well as possible difficulties that might arise if multiple covariates are included.  I alerted you to the problems *colinearity* in predictors cause.
 
+```{r boxplots, echo=FALSE, message=FALSE}
+library(Distance)
+data(amakihi)
+par(mfrow=c(2,2))
+boxplot(amakihi$distance~amakihi$OBs, xlab="Observer", ylab="Distance (m)")
+boxplot(amakihi$distance~amakihi$HAS, xlab="Hour", ylab="Distance (m)")
+plot(x=amakihi$MAS, y=amakihi$distance, xlab="Minutes after sunrise",
+     ylab="Distance (m)", pch=20)
+plot(x=amakihi$HAS, y=amakihi$MAS, xlab="Hours after sunrise",
+     ylab="Minutes after sunrise", pch=20)
+par(mfrow=c(1,1))
 ```
 
-### Exercise with Code
-
-*Here's an exercise with some prepopulated code as well as `exercise.lines = 5` to provide a bit more initial room to work.*
-
-Now write a function that adds any two numbers and then call it:
-
-```{r add-function, exercise=TRUE, exercise.lines = 5}
-add <- function() {
-  
-}
+```{r colinearity}
+question_radio("Which of these diagnostic plots indicate a colinearity problem?",
+  answer("top left"),               
+  answer("top right"),               
+  answer("bottom left"),               
+  answer("bottom right", correct=TRUE)
+)
 ```
 
-## Topic 2
-
-### Exercise with Hint
-
-*Here's an exercise where the chunk is pre-evaulated via the `exercise.eval` option (so the user can see the default output we'd like them to customize). We also add a "hint" to the correct solution via the chunk immediate below labeled `print-limit-hint`.*
-
-Modify the following code to limit the number of rows printed to 5:
-
-```{r print-limit, exercise=TRUE, exercise.eval=TRUE}
-mtcars
+```{r col-soln}
+question_radio("What should you do about this?",
+  answer("Do not include observer as covariate in your model"),               
+  answer("Do not include hour and minutes together in your model", correct=TRUE),
+  answer("Do not include observer and hour together in your model"),               
+  answer("Certainly include minutes in your model")               
+)
 ```
 
-```{r print-limit-hint}
-head(mtcars)
+### Influence of small values of $\widehat{P_a(z_i)}$ 
+
+If a "large" proportion of detections are produced by very small detection probabilities $\widehat{P_a(z_i)}$ the result can be improbably large abundance estimates. The function `p_dist_table()` helps you detect this potential problem. Two tables below show results of two calls to `p_dist_table()` for the amakihi data set.
+
+```{r pdist-setup, echo=FALSE, message=FALSE}
+conv <- convert_units("meter", NULL, "hectare")
+amak.hr.obs.mas <- ds(amakihi, transect="point", key="hr", formula=~OBs+MAS, convert_units = conv,
+                      truncation=82.5)
+kable(p_dist_table(amak.hr.obs.mas, bins=seq(0, 0.6, 0.1), proportion = TRUE),
+      digits = 3,
+      caption="Distribution of $P_a(z_i)$ from preferred model when w=82.5") %>%
+  kable_styling(full_width=FALSE) %>%
+  row_spec(2, bold=TRUE, color="white", background="blue")
+amak.hr.obs.mas.70 <- ds(amakihi, transect="point", key="hr", formula=~OBs+MAS, convert_units = conv,
+                      truncation=70)
+kable(p_dist_table(amak.hr.obs.mas.70, bins=seq(0, 0.6, 0.1), proportion = TRUE),
+      digits = 3,
+      caption="Distribution of $P_a(z_i)$ from preferred model when w=70") %>%
+  kable_styling(full_width=FALSE) %>%
+  row_spec(2, bold=TRUE, color="white", background="blue")
 ```
 
-### Quiz
+```{r pdist-ques}
+question_radio("Why does more severe truncation cause the distribution of $\\widehat{P_a(z_i)}$ estimates to shift to larger values?",
+  answer("detections at large distances have low probability of occurance because of the distance effect", correct=TRUE),         
+  answer("detections made by poor observer are removed"),         
+  answer("detections made late in the day are removed")
+)
+```
 
-*You can include any number of single or multiple choice questions as a quiz. Use the `question` function to define a question and the `quiz` function for grouping multiple questions together.*
+## Eastern Tropical Pacific dolphin analysis
 
-Some questions to verify that you understand the purposes of various base and recommended R packages:
+AIC indicates that `search.method` is the preferred single covariate in a candidate detection function. That's fine, however, examine the details of the fitted model
 
-```{r quiz}
-quiz(
-  question("Which package contains functions for installing other R packages?",
-    answer("base"),
-    answer("tools"),
-    answer("utils", correct = TRUE),
-    answer("codetools")
-  ),
-  question("Which of the R packages listed below are used to create plots?",
-    answer("lattice", correct = TRUE),
-    answer("tools"),
-    answer("stats"),
-    answer("grid", correct = TRUE)
-  )
+```{r etp, echo=FALSE, message=FALSE}
+data(ETP_Dolphin)
+etp.hr.search <- ds(ETP_Dolphin, key="hr", formula=~factor(Search.method))
+print(etp.hr.search$ddf)
+```
+
+
+```{r etp-ques}
+question_radio("Within this output is a diagnostic that should cause you to question the veracity of this model. What is that diagnostic?",
+  answer("number of observations is incorrect"),             
+  answer("point estimate of $\\beta(Search_3)$ is much larger than other $\\beta$ values"),       
+  answer("standard error of $\\beta(Search_3)$ is 26X larger than its point estimate", correct=TRUE),
+  answer("standard error of shape coefficient exceeds point estimate of shape coefficient")
+)
+```
+
+## Savannah sparrows with pasture covariate
+
+Check that the image of the probability density function by pasture, created for the 1981 data set is correct. Checking this involves converting the table of $\hat{\beta}$ coefficients into estimates of $\hat{\sigma}$ which are more easily interpreted. Below is the output from the 1981 data set with a half-normal key function and pasture as a covariate.
+
+```{r sav-setup, echo=FALSE, message=FALSE}
+data(Savannah_sparrow_1981)
+conversion.factor <- convert_units("meter", NULL, "hectare")
+Savannah_sparrow_1981.hn.region <- ds(data=Savannah_sparrow_1981, key="hn", truncation=55,
+                        transect="point", convert_units=conversion.factor,
+                        formula=~Region.Label)
+print(Savannah_sparrow_1981.hn.region$ddf)
+```
+
+From the output provide $\hat{\beta}$ estimates to the code below to convert them into pasture-specific  $\hat{\sigma}$ estimates.
+
+```{r sav_compute, exercise=TRUE, exercise.eval=FALSE, exercise.blanks=TRUE}
+intercept <- ___
+beta_hat_1 <- ___
+beta_hat_2 <- ___
+beta_hat_3 <- ___
+sigma_0 <- round(exp(intercept))
+sigma_1 <- round(exp(intercept + beta_hat_1))
+sigma_2 <- round(exp(intercept + beta_hat_2))
+sigma_3 <- round(exp(intercept + beta_hat_3))
+output <- data.frame(pasture=c(0,1,2,3), sigma=c(sigma_0, sigma_1, sigma_2, sigma_3))
+kable(output)
+```
+
+```{r sav_compute-hint-1}
+intercept <- 2.944
+```
+
+```{r sav_compute-hint-2}
+intercept <- 2.944
+beta_hat_1 <- .736
+beta_hat_2 <- .166
+beta_hat_3 <- .270
+```
+
+
+Interpret the strength of the pasture effect for each pasture by examining the relative magnitude of the standard error to the point estimates of the $\hat{\beta}$ coefficients.
+
+```{r strength}
+question("Estimated detection probabilities are most similar for which pair of pastures?",
+  answer("pasture 0 and pasture 1"),         
+  answer("pasture 0 and pasture 2", correct=TRUE),         
+  answer("pasture 0 and pasture 3")
 )
 ```

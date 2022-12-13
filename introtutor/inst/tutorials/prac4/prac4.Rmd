@@ -10,8 +10,7 @@ library(learnr)
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
-
-<img src=https://images.unsplash.com/photo-1519599189038-58e6fc7a060d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=928&q=80 width=213 height=267 style="float:right">
+<img src=https://images.unsplash.com/photo-1519599189038-58e6fc7a060d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8MTJ8fHVuY2VydGFpbnR5fGVufDB8fDB8fA%3D%3D&auto=format&fit=crop&w=500&q=60 width=320 height=400 style="float:right">
 
 <p style="text-align:right font-size:70%">Photo by Michael Shannon from Unsplash</p>
 
