@@ -87,7 +87,7 @@ One oversight of the analysis of `LTExercise` simulated data is the failure to a
 gof_ds(lt.hn.cos.t20m, plot=FALSE)
 gof_ds(lt.uf.cos.t20m, plot=FALSE)
 gof_ds(lt.hr.t20m, plot=FALSE)
-  question_checkbox("Which of the models fit the data (truncated at 20m) and could be used for inference?",
+  question_checkbox("Which of the models fit the data (truncated at 20m) and could be used for inference? (select all that apply)",
     answer("half normal key with cosine adjustment", correct=TRUE),
     answer("hazard rate key with cosine adjustment", correct=TRUE),
     answer("uniform key with cosine adjustment", correct=TRUE)
@@ -95,7 +95,7 @@ gof_ds(lt.hr.t20m, plot=FALSE)
 ```
 
 
-### Capercaillie data
+## Capercaillie data
 
 Watch out for danger signs in output of functions.  Examine the output of this simple half normal fitted to the exact capercaillie distances. Consider the following output:
 
