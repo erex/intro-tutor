@@ -56,8 +56,24 @@ Replace the blanks in  the following code to produce an estimate of the number o
 dhat <- ___
 area <- ___
 est.num.nests <- ___
-print(est.num.nests)
+print(round(est.num.nests))
 ```
+
+```{r abundance-hint-1}
+dhat <- 49.7
+```
+
+```{r abundance-hint-2}
+dhat <- 49.7
+area <- 47.7
+```
+
+```{r abundance-hint-3}
+dhat <- 49.7
+area <- 47.7
+est.num.nests <- dhat * area
+```
+
 
 ```{r numnests}
 question_numeric("To the nearest 10, what is the estimated total number of nests on the refuge?",
@@ -136,6 +152,16 @@ difference <- largest_est - smallest_est
 relative_difference <- difference / smallest_est
 print(round(relative_difference,3))
 ```
+
+```{r dendiff-hint-1}
+smallest_est <- 48.6
+```
+
+```{r dendiff-hint-2}
+smallest_est <- 48.6
+largest_est <- 51
+```
+
 
 From the calculation above,
 
