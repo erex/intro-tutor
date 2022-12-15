@@ -120,11 +120,11 @@ The challenge is to estimate the variance of the  difference in estimated densit
 When only a single argument is passed to the function, it is assumed there are two strata and they share a common detection function. When the function has two arguments, it operates as if the objects came from two separate analyses, meaning the two estimates came from different detection functions and the estimates are therefore independent.
 
 ```{r diff, echo=FALSE, message=FALSE, error=FALSE, warning=FALSE}
-whales <- read.csv("C:/Users/erexs/Documents/GitHub/live-intro-7-stratification/stratify_examp.csv")
+whales <- read.csv("https://raw.githubusercontent.com/erex/Oct-Quarto/master/Pr7/stratify_examp.csv")
 hazard.pooled <- ds(data=whales, key="hr", truncation = 1.5)
 ideal.hr <- ds(data=whales[whales$Region.Label=="Ideal",], key="hr", truncation=1.5)
 marginal.hr <- ds(data=whales[whales$Region.Label=="Marginal",], key="hr", truncation=1.5)
-source("C:/Users/erexs/Documents/GitHub/live-intro-7-stratification/density.difference.ds.r")
+devtools::source_url("https://github.com/erex/Oct-Quarto/blob/main/Pr7/density.difference.ds.r?raw=TRUE")
 density.difference.ds(hazard.pooled)
 density.difference.ds(ideal.hr, marginal.hr)
 ```
